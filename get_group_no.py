@@ -1,7 +1,11 @@
-import requests
-import xmltodict
+#
+
+
 import csv
 import traceback
+import requests
+import xmltodict
+
 from df_handel import do
 # creating login session...
 req = requests.Session()
@@ -25,21 +29,18 @@ if res:
         ferts_rdr = csv.DictReader(f, fieldnames=["FERT CODE"],)
 
         # [95153726, 95152435]  # [85004508, 87158444, 87158443, 87150295]
-        for row in ferts_rdr:
-            print(row)
-            break
+
         ferts = (row["FERT CODE"] for row in ferts_rdr)
         faild_ferts = []
 
         for fert in ferts:
+            print("Fert: ", fert)
+            done = False
             try:
                 fert = int(fert)
                 # mbom part
                 mbom_vals = {"fertCode": fert}
                 res = req.post(mbom_pre_post, json=mbom_vals)
-
-                done = False
-
                 if res:
                     res_obj = xmltodict.parse(res.content)["Map"]
 
