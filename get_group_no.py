@@ -1,6 +1,7 @@
 import requests
 import xmltodict
-
+import csv
+import traceback
 from df_handel import do
 # creating login session...
 req = requests.Session()
@@ -20,34 +21,22 @@ res = req.post("https://ecatalog.vecv.net/VECV-ECAT/j_spring_security_check",
                })
 
 if res:
+    with open("xlxs_folder/ferts/Released_Fet.csv") as f:
+        ferts_rdr = csv.DictReader(f, fieldnames=["FERT CODE"],)
 
-    ferts = [95153726, 95152435]  # [85004508, 87158444, 87158443, 87150295]
-    faild_ferts = []
+        # [95153726, 95152435]  # [85004508, 87158444, 87158443, 87150295]
+        for row in ferts_rdr:
+            print(row)
+            break
+        ferts = (row["FERT CODE"] for row in ferts_rdr)
+        faild_ferts = []
 
-    for fert in ferts:
-        # mbom part
-        mbom_vals = {"fertCode": fert}
-        res = req.post(mbom_pre_post, json=mbom_vals)
-
-        done = False
-
-        if res:
-            res_obj = xmltodict.parse(res.content)["Map"]
-
-            if res_obj["isFileCreated"]:
-                file_url = dl_base_url + res_obj["filePath"]
-                res = req.get(file_url)
-
-                mbom_file_path = "xlxs_folder/mbom/" + res_obj["filePath"]
-
-                with open(mbom_file_path, "wb") as f:
-                    f.write(res.content)
-
-                # bom part
-
-                bom_vals = {"fertCode": fert, "chassisNo": "",
-                            "islatestFlag": "true"}
-                res = req.post(bom_pre_post, json=bom_vals)
+        for fert in ferts:
+            try:
+                fert = int(fert)
+                # mbom part
+                mbom_vals = {"fertCode": fert}
+                res = req.post(mbom_pre_post, json=mbom_vals)
 
                 done = False
 
@@ -55,24 +44,50 @@ if res:
                     res_obj = xmltodict.parse(res.content)["Map"]
 
                     if res_obj["isFileCreated"]:
-
                         file_url = dl_base_url + res_obj["filePath"]
                         res = req.get(file_url)
 
-                        bom_file_path = "xlxs_folder/bom/" + \
+                        mbom_file_path = "xlxs_folder/mbom/" + \
                             res_obj["filePath"]
 
-                        with open(bom_file_path, "wb") as f:
+                        with open(mbom_file_path, "wb") as f:
                             f.write(res.content)
 
-                        do(mbom_file_path, bom_file_path, fert)
+                        # bom part
 
-                        done = True
+                        bom_vals = {"fertCode": fert, "chassisNo": "",
+                                    "islatestFlag": "true"}
+                        res = req.post(bom_pre_post, json=bom_vals)
 
-        if not done:
-            faild_ferts.append(fert)
+                        done = False
 
-    print("faild_ferts -> ", faild_ferts)
-    with open("faild_ferts.txt", "w") as f:
-        for ff in faild_ferts:
-            f.write(f"{ff}\n")
+                        if res:
+                            res_obj = xmltodict.parse(res.content)["Map"]
+
+                            if res_obj["isFileCreated"]:
+
+                                file_url = dl_base_url + res_obj["filePath"]
+                                res = req.get(file_url)
+
+                                bom_file_path = "xlxs_folder/bom/" + \
+                                    res_obj["filePath"]
+
+                                with open(bom_file_path, "wb") as f:
+                                    f.write(res.content)
+
+                                do(mbom_file_path, bom_file_path, fert)
+
+                                done = True
+
+            except Exception as e:
+                traceback.print_exc()
+
+                print("error: ", e)
+
+            if not done:
+                faild_ferts.append(fert)
+
+        print("faild_ferts -> ", faild_ferts)
+        with open("faild_ferts.txt", "w") as f:
+            for ff in faild_ferts:
+                f.write(f"{ff}\n")
