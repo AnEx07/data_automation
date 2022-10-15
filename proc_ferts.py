@@ -2,7 +2,6 @@
 import csv
 import traceback
 import pandas as pd
-from sqlalchemy import desc
 
 excludes = "nut,washer,screw,bolt,grease,LONG DRAIN OIL,BRAKE FLUID".lower().split(",")
 
@@ -59,8 +58,32 @@ def do(mbom_file_path, bom_file_path, fert):
             mbom_df.at[index, "GROUP NO."] = row["GROUP NO."]
             break
 
-    mbom_df[(mbom_df["GROUP NO."] != "") & (mbom_df["GROUP NO."] != None) & (~mbom_df["GROUP NO."].isnull())].to_excel(f"xlxs_folder/out/{fert}.xlsx", "SBOM",
-                                                                                                                       index=False, columns=["WITH REV", "GROUP NO.", "DESC"])  # columns=["Level", "PART NO.", "PART NAME", "SERVICEABILITY", "GROUP NO.", "WITH REV", "DESC"])
+    to_save = mbom_df[["WITH REV", "GROUP NO.", "DESC"]].drop_duplicates()
+
+    to_save = to_save[(to_save["GROUP NO."] != "") & (
+        to_save["GROUP NO."] != None) & (~to_save["GROUP NO."].isnull())]
+
+    to_save.columns = ["installation_id", "plate_id", "description"]
+
+    to_save["is_active"] = True
+    to_save["oem"] = "VECV"
+    to_save["email"] = "omkar.gawali@enatagroup.com"
+
+    to_save_ins = to_save.drop("plate_id", axis=1,)
+
+    to_save_ins["variants"] = fert
+
+    to_save_ins.to_csv(f"xlxs_folder/out/installations/{fert}.csv",
+                       index=False,)  # columns=["Level", "PART NO.", "PART NAME", "SERVICEABILITY", "GROUP NO.", "WITH REV", "DESC"])
+
+    to_save.rename({"installation_id": "installation"}, axis=1, inplace=True)
+
+    to_save["description"] = "Default Plate"
+    to_save["group_name"] = "Engine"
+
+    to_save.to_csv(f"xlxs_folder/out/plates/{fert}.csv",
+
+                   index=False,)
     print("saved...")
 
 
@@ -73,8 +96,8 @@ if __name__ == "__main__":
         # [95153726, 95152435]  # [85004508, 87158444, 87158443, 87150295]
 
         # (row["FERT CODE"] for row in ferts_rdr)  # [80100126]  #
-        ferts = [80100126]
-        faild_ferts = []
+        ferts = (row["FERT CODE"] for row in ferts_rdr)
+        failed_ferts = []
 
         for fert in ferts:
             print("Fert: ", fert)
@@ -92,9 +115,9 @@ if __name__ == "__main__":
                 print("error: ", e)
 
             if not done:
-                faild_ferts.append(fert)
+                failed_ferts.append(fert)
 
-        print("faild_ferts to process -> ", faild_ferts)
-        with open("proc_faild_ferts.txt", "w") as f:
-            for ff in faild_ferts:
+        print("failed_ferts to process -> ", failed_ferts)
+        with open("proc_failed_ferts.txt", "w") as f:
+            for ff in failed_ferts:
                 f.write(f"{ff}\n")

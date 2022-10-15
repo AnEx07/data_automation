@@ -4,7 +4,10 @@
 *.ipynb
 *.xlsx
 *.xlsx#
+*.csv
+*.csv#
 *.zip
 
 test.html
 *.txt
+*.csv

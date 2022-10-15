@@ -27,10 +27,10 @@ if res:
     with open("xlxs_folder/ferts/Released_Fet.csv") as f:
         ferts_rdr = csv.DictReader(f, fieldnames=["FERT CODE"],)
 
-        # [95153726, 95152435]  # [85004508, 87158444, 87158443, 87150295]
+        # [80100126]  # [95153726, 95152435]  # [85004508, 87158444, 87158443, 87150295]
 
-        ferts = [80100126]  # (row["FERT CODE"] for row in ferts_rdr)
-        faild_ferts = []
+        ferts = (row["FERT CODE"] for row in ferts_rdr)
+        failed_ferts = []
 
         for fert in ferts:
             print("Fert: ", fert)
@@ -85,9 +85,9 @@ if res:
                 print("error: ", e)
 
             if not done:
-                faild_ferts.append(fert)
+                failed_ferts.append(fert)
 
-        print("faild_ferts to down_load -> ", faild_ferts)
-        with open("dl_faild_ferts.txt", "w") as f:
-            for ff in faild_ferts:
+        print("failed_ferts to down_load -> ", failed_ferts)
+        with open("dl_failed_ferts.txt", "w") as f:
+            for ff in failed_ferts:
                 f.write(f"{ff}\n")
