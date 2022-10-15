@@ -6,7 +6,6 @@ import traceback
 import requests
 import xmltodict
 
-from df_handel import do
 # creating login session...
 req = requests.Session()
 
@@ -30,7 +29,7 @@ if res:
 
         # [95153726, 95152435]  # [85004508, 87158444, 87158443, 87150295]
 
-        ferts = (row["FERT CODE"] for row in ferts_rdr)
+        ferts = [80100126]  # (row["FERT CODE"] for row in ferts_rdr)
         faild_ferts = []
 
         for fert in ferts:
@@ -76,7 +75,7 @@ if res:
                                 with open(bom_file_path, "wb") as f:
                                     f.write(res.content)
 
-                                do(mbom_file_path, bom_file_path, fert)
+                                # do(mbom_file_path, bom_file_path, fert)
 
                                 done = True
 
@@ -88,7 +87,7 @@ if res:
             if not done:
                 faild_ferts.append(fert)
 
-        print("faild_ferts -> ", faild_ferts)
-        with open("faild_ferts.txt", "w") as f:
+        print("faild_ferts to down_load -> ", faild_ferts)
+        with open("dl_faild_ferts.txt", "w") as f:
             for ff in faild_ferts:
                 f.write(f"{ff}\n")
