@@ -59,7 +59,7 @@ if __name__ == "__main__":
     ferts = (i.split(".")[0] for i in os.listdir(
         "xlxs_folder/inputs") if i.endswith(".xlsx"))
 
-    ferts = [92004085]
+    # ferts = [92004085]
     failed_ferts = []
 
     dir = f"xlxs_folder/bom/out"
